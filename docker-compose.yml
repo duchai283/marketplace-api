@@ -1,0 +1,59 @@
+version: '2'
+
+services:
+  auth:
+    build:
+      context: ./services/Auth
+      dockerfile: Dockerfile
+    container_name: auth-service
+    working_dir: /usr/src/app
+    volumes:
+      - ./services/Auth/:/usr/src/app
+      - /usr/src/app/node_modules/
+    ports:
+      - '3000:3000'
+  customers:
+    build:
+      context: ./services/Customer
+      dockerfile: Dockerfile
+    container_name: customers-service
+    working_dir: /usr/src/app
+    volumes:
+      - ./services/Customer/:/usr/src/app
+      - /usr/src/app/node_modules/
+    ports:
+      - '3001:3000'
+    depends_on:
+      - mongo
+  product:
+    build:
+      context: ./services/Product
+      dockerfile: Dockerfile
+    container_name: products-service
+    working_dir: /usr/src/app
+    volumes:
+      - ./services/Product/:/usr/src/app
+      - /usr/src/app/node_modules/
+    ports:
+      - '3002:3000'
+    depends_on:
+      - mongo
+  mongo:
+    container_name: mongo
+    image: mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+  nginx:
+    image: nginx:latest
+    ports:
+      - 443:443
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - auth
+      - product
+      - customers
+volumes:
+  mongo_data:
